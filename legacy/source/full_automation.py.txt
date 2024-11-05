@@ -1,0 +1,309 @@
+import json
+import os
+from googleapiclient.discovery import build
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from yt_dlp import YoutubeDL
+
+
+
+EU_COUNTRIES = [
+    "DE","AT", "FI", "FR", "IT", "NL","PL", "ES","SE"
+]
+
+def scrape_youtube_videos(api_key, save_dir, total_videos=20, query="#Shorts politics", video_duration="short"):
+    """
+    Scrape YouTube videos from multiple EU countries, up to `total_videos` total results overall.
+    Skips duplicates and live videos. 
+    """
+    youtube = build('youtube', 'v3', developerKey=api_key)
+
+    seen_video_ids = set()
+
+    def fetch_videos(max_results, region_code, query, video_duration, page_token=None):
+        """
+        Fetch videos from YouTube using the specified parameters.
+        """
+        videos = []
+        try:
+            request = youtube.search().list(
+                part="snippet",
+                q=query,
+                type="video",
+                videoDuration=video_duration,
+                regionCode=region_code,
+                maxResults=max_results,
+                pageToken=page_token,
+                order="relevance"
+            )
+            response = request.execute()
+
+            for item in response.get("items", []):
+                video_id = item["id"]["videoId"]
+                title = item["snippet"]["title"]
+                videos.append({"video_id": video_id, "title": title})
+
+            next_page_token = response.get("nextPageToken")
+            return videos, next_page_token
+        except Exception as e:
+            print("Failed to fetch videos due to:", e)
+            return [], None
+
+    def fetch_video_metadata(video_id):
+        """
+        Fetch metadata for a given video ID, including 'liveStreamingDetails'.
+        """
+        try:
+            request = youtube.videos().list(
+                part="snippet,contentDetails,statistics,topicDetails,liveStreamingDetails",
+                id=video_id
+            )
+            response = request.execute()
+            if response.get("items"):
+                video = response["items"][0]
+                snippet = video.get("snippet", {})
+                statistics = video.get("statistics", {})
+                content_details = video.get("contentDetails", {})
+                topic_details = video.get("topicDetails", {})
+                live_details = video.get("liveStreamingDetails", {})
+
+                return {
+                    "publishedAt": snippet.get("publishedAt"),
+                    "channelTitle": snippet.get("channelTitle"),
+                    "description": snippet.get("description"),
+                    "tags": snippet.get("tags", []),
+                    "viewCount": statistics.get("viewCount"),
+                    "likeCount": statistics.get("likeCount"),
+                    "commentCount": statistics.get("commentCount"),
+                    "duration": content_details.get("duration"),
+                    "definition": content_details.get("definition"),
+                    "caption": content_details.get("caption"),
+                    "relevantTopicIds": topic_details.get("relevantTopicIds", []),
+                    # If liveStreamingDetails is present, treat it as live
+                    "isLive": bool(live_details)
+                }
+        except Exception as e:
+            print(f"Failed to fetch metadata for video ID {video_id} due to:", e)
+            return {}
+        return {}
+
+    def fetch_top_comments(video_id):
+        """
+        Fetch top 10 comments and their threads for a given video ID.
+        """
+        comments_data = []
+        next_page_token = None
+
+        try:
+            while len(comments_data) < 10:
+                request = youtube.commentThreads().list(
+                    part="snippet,replies",
+                    videoId=video_id,
+                    maxResults=50,
+                    pageToken=next_page_token,
+                    textFormat="plainText"
+                )
+                response = request.execute()
+
+                for item in response.get("items", []):
+                    snippet = item["snippet"]["topLevelComment"]["snippet"]
+                    comment = snippet["textDisplay"]
+                    replies = []
+                    if "replies" in item:
+                        replies = [r["snippet"]["textDisplay"] for r in item["replies"]["comments"]]
+
+                    comments_data.append({
+                        "comment": comment,
+                        "author": snippet.get("authorDisplayName"),
+                        "likes": snippet.get("likeCount", 0),
+                        "publishedAt": snippet.get("publishedAt"),
+                        "replies": replies
+                    })
+
+                    if len(comments_data) >= 10:
+                        break
+
+                next_page_token = response.get("nextPageToken")
+                if not next_page_token:
+                    break
+        except Exception as e:
+            print(f"Failed to fetch comments for video ID {video_id} due to:", e)
+
+        return comments_data
+
+    def analyze_sentiments(comments_data):
+        """
+        Perform sentiment analysis on comments and replies using VADER.
+        """
+        analyzer = SentimentIntensityAnalyzer()
+        for comment_data in comments_data:
+            comment_text = comment_data["comment"]
+            comment_data["comment_sentiment"] = analyzer.polarity_scores(comment_text)
+
+            replies_sentiment = []
+            for reply_text in comment_data["replies"]:
+                replies_sentiment.append({
+                    "reply": reply_text,
+                    "sentiment": analyzer.polarity_scores(reply_text)
+                })
+            comment_data["replies_sentiment"] = replies_sentiment
+
+        return comments_data
+
+    def download_videos(videos):
+        """
+        Download videos using yt-dlp.
+        We rely on 'isLive' check to skip live content above, so no match_filter needed.
+        """
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir, exist_ok=True)
+
+        ydl_opts = {
+            'format': 'mp4[height<=720]',
+            'outtmpl': os.path.join(save_dir, '%(title)s.%(ext)s'),
+            'noplaylist': True,
+            'http_chunk_size': 1048576,  # 1MB chunks
+            'retries': 3,
+            'hls_prefer_native': True,
+            'hls_use_mpegts': True,
+            'timeout': 60,
+            'skip_unavailable_fragments': True,
+            # Removing match_filter to avoid 'str object is not callable' in Python API
+        }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            for video in videos:
+                video_id = video["video_id"]
+                video_url = f"https://www.youtube.com/watch?v={video_id}"
+                title = video["title"]
+                print(f"Downloading: {title} ({video_url})")
+                try:
+                    ydl.download([video_url])
+                except Exception as e:
+                    print(f"Failed to download {video_url}: {e}")
+
+    def save_to_json(data, filename):
+        """
+        Save the collected data to a JSON file.
+        """
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        print(f"Data saved to {filename}")
+
+    all_data = []
+    batch_size = 20
+    batch_number = 1
+    videos_left = total_videos
+
+    for country_code in EU_COUNTRIES:
+        if videos_left <= 0:
+            break
+
+        print(f"\n=== Processing country: {country_code} ===")
+        next_page_token = None
+
+        while videos_left > 0:
+            current_batch_size = min(batch_size, videos_left)
+            print(f"Fetching batch {batch_number} with {current_batch_size} videos from {country_code}...")
+            videos, next_page_token = fetch_videos(
+                current_batch_size, country_code, query, video_duration, page_token=next_page_token
+            )
+
+            if not videos:
+                print(f"No more videos found (or quota exhausted) for {country_code}.")
+                break
+
+            results = []
+            for vid in videos:
+                # Skip duplicates
+                if vid["video_id"] in seen_video_ids:
+                    print(f"Skipping duplicate video: {vid['title']} (ID: {vid['video_id']})")
+                    continue
+                seen_video_ids.add(vid["video_id"])
+
+                print(f"Processing video: {vid['title']} (ID: {vid['video_id']})")
+                metadata = fetch_video_metadata(vid["video_id"])
+                if metadata.get("isLive"):
+                    print(f"Skipping live video: {vid['title']} (ID: {vid['video_id']})")
+                    continue
+
+                comments = fetch_top_comments(vid["video_id"])
+                analyzed_comments = analyze_sentiments(comments)
+                video_data = {
+                    "video_id": vid["video_id"],
+                    "title": vid["title"],
+                    "metadata": metadata,
+                    "comments": analyzed_comments
+                }
+                results.append(video_data)
+                all_data.append(video_data)
+
+            # Save batch-level JSON
+            json_filename = os.path.join(
+                save_dir, f"youtube_videos_batch_{batch_number}_{country_code}.json"
+            )
+            save_to_json(results, json_filename)
+
+            download_videos(results)
+
+            batch_number += 1
+            videos_left -= current_batch_size
+
+            if not next_page_token:
+                print(f"No next page token for {country_code}, moving to next country.")
+                break
+
+    super_json_filename = os.path.join(save_dir, "youtube_videos_all_data.json")
+    save_to_json(all_data, super_json_filename)
+
+if __name__ == "__main__":
+    API_KEY = "REDACTED_USE_ENVIRONMENT_VARIABLE"  
+    SAVE_DIR = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\Videos"
+
+    print("Enter the total number of videos to scrape (default: 20):")
+    total_videos_input = input().strip()
+    total_videos = int(total_videos_input) if total_videos_input else 20
+
+    print("Enter the query string (default: '#Shorts politics'):")
+    query_input = input().strip() or "#Shorts politics"
+
+    print("Enter the video duration ('short', 'medium', 'long'; default: 'short'):")
+    duration_input = input().strip() or "short"
+
+    scrape_youtube_videos(
+        api_key=API_KEY,
+        save_dir=SAVE_DIR,
+        total_videos=total_videos,
+        query=query_input,
+        video_duration=duration_input
+    )
+
+
+########################################################
+""""
+Next Steps: 
+- Get video: done 
+- save json: done 
+- run through the english ones: remove non-english using whisper
+- getting frame by frame analysis from the open ai api 
+- combining all the json files 
+- getting the files topology, i.e., what type of content do they represent (adding to json also)
+- running through the final trust analysis
+"""
+
+
+########################################################
+
+
+
+########################################################
+
+
+
+########################################################
+
+########################################################
+
+########################################################
+
+########################################################
