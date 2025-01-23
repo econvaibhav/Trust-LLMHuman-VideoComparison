@@ -1,0 +1,8 @@
+{
+  "title": "Video Trust Lab",
+  "is_demo": true,
+  "consent_version": "demo-v1",
+  "videos_per_session": 3,
+  "contact": "Set the researcher contact in study.json.",
+  "consent_text": "This is a local demonstration using three fictional, silent video clips. Your scores, optional explanation, playback duration, and response time are saved on this computer. No name or email is requested. You may stop at any time. Model ratings are synthetic examples and are not shown during the survey."
+}

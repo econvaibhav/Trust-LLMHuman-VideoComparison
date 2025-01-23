@@ -1,0 +1,29 @@
+[
+  {
+    "video_id": "demo_community",
+    "title": "A new community garden",
+    "media_path": "media/demo_community.mp4",
+    "media_sha256": "bfe7780a8e19a62a94f93a767c72d2f9c3678b9b2dec48452576cd084213f771",
+    "metadata": {},
+    "comments": [],
+    "is_demo": true
+  },
+  {
+    "video_id": "demo_miracle",
+    "title": "A remarkable daily habit",
+    "media_path": "media/demo_miracle.mp4",
+    "media_sha256": "674d17a6c68b63d8dbae6c02211eb57e95bf5d664796da237ccd6f49c61c7440",
+    "metadata": {},
+    "comments": [],
+    "is_demo": true
+  },
+  {
+    "video_id": "demo_transport",
+    "title": "A change to the bus route",
+    "media_path": "media/demo_transport.mp4",
+    "media_sha256": "a9e0214ed4490c706f3ce1db1dbb1e399604b9606f25b4222c0bfdd1f1f2d2c5",
+    "metadata": {},
+    "comments": [],
+    "is_demo": true
+  }
+]
