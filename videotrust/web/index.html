@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Video trust study</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"
+        ><span class="brandmark">vt.</span>Video Trust Lab</a
+      ><span id="mode" class="pill">Study</span>
+    </header>
+    <main class="survey-shell">
+      <section id="welcome" class="welcome">
+        <p class="eyebrow">PARTICIPANT SURVEY</p>
+        <h1>Video trust study</h1>
+        <p class="lead" id="instructions">
+          Watch a short video and tell us how much you trust it.
+        </p>
+        <div class="intro-flow">
+          <span><b>01</b>Watch the video</span
+          ><span><b>02</b>Form your view</span
+          ><span><b>03</b>Share your response</span>
+        </div>
+        <div class="consent-card">
+          <h2>Before you begin</h2>
+          <p id="consent-text">Loading study information…</p>
+          <p id="contact" class="muted"></p>
+          <label class="check"
+            ><input id="consent" type="checkbox" disabled /><span
+              >I have read the information above and agree to participate.</span
+            ></label
+          ><button id="start" class="button primary" disabled>
+            Start the study
+          </button>
+          <p class="small muted">
+            Model scores are not shown during the study.
+          </p>
+        </div>
+      </section>
+      <section id="task" hidden>
+        <div class="study-heading">
+          <div>
+            <p class="eyebrow" id="stage-label">YOUR RESPONSE</p>
+            <h1>Your assessment</h1>
+          </div>
+          <div class="step">
+            <span id="step-label"></span
+            ><progress id="progress" max="3" value="0"></progress>
+          </div>
+        </div>
+        <div class="task-grid">
+          <article class="video-card">
+            <div class="card-head">
+              <span>STUDY VIDEO</span><span id="video-number"></span>
+            </div>
+            <div class="player-wrap">
+              <video
+                id="video"
+                controls
+                playsinline
+                preload="metadata"
+                aria-label="Study video"
+              ></video>
+            </div>
+            <div class="video-caption">
+              <h2 id="video-title"></h2>
+              <p class="small muted">
+                Watch before answering. You can replay the video.
+              </p>
+              <p id="media-error" class="error" hidden>
+                This video could not be played. Please contact the researcher
+                before responding.
+              </p>
+            </div>
+          </article>
+          <form id="rating-form" class="rating-card">
+            <p class="eyebrow">YOUR OWN RATING</p>
+            <h2>How much do you trust this video?</h2>
+            <p class="muted">Choose the score that best reflects your view.</p>
+            <fieldset class="score-field">
+              <legend class="sr-only">
+                Trust score, from 0 completely distrust to 10 completely trust
+              </legend>
+              <div id="scores" class="scores"></div>
+              <div class="scale-labels">
+                <span>Completely distrust</span><span>Completely trust</span>
+              </div>
+            </fieldset>
+            <div id="selected-score" class="selected-score">
+              Choose a score to continue
+            </div>
+            <div class="divider"></div>
+            <label for="reason" class="label"
+              >What shaped your judgment?<span>Optional</span></label
+            ><textarea
+              id="reason"
+              maxlength="2000"
+              rows="3"
+              placeholder="A detail you noticed, for example."
+            ></textarea
+            ><label for="confidence" class="label"
+              >How certain are you?<span>Optional</span></label
+            ><select id="confidence">
+              <option value="">Choose if you wish</option>
+              <option value="0">0 · Not at all certain</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10 · Completely certain</option></select
+            ><button id="submit" class="button primary" type="submit" disabled>
+              Save &amp; continue
+            </button>
+            <p id="save-note" class="small muted">
+              Your response is saved before the next video appears.
+            </p>
+          </form>
+          <form id="interview-form" class="rating-card" hidden>
+            <p class="eyebrow">VIDEO INTERVIEW</p>
+            <h2>Your impressions</h2>
+            <p class="muted">
+              Answer in your own words. You may finish after any answer.
+            </p>
+            <div id="conversation" aria-live="polite"></div>
+            <label class="label" for="interview-answer">Your answer</label
+            ><textarea
+              id="interview-answer"
+              maxlength="2000"
+              rows="4"
+              placeholder="What do you think?"
+            ></textarea
+            ><button id="send-answer" type="submit" class="button primary">
+              Send answer</button
+            ><button
+              id="retry-question"
+              type="button"
+              class="button secondary"
+              hidden
+            >
+              Retry follow-up question</button
+            ><button
+              id="finish-interview"
+              type="button"
+              class="button secondary"
+              disabled
+            >
+              Finish interview and continue
+            </button>
+            <p id="interview-note" class="small muted"></p>
+          </form>
+        </div>
+      </section>
+      <section id="done" class="done" hidden>
+        <div class="done-symbol">✓</div>
+        <h1>Thank you for taking part.</h1>
+        <p>Your responses have been saved. You can close this tab.</p>
+        <p class="small muted">Your session reference</p>
+        <code id="session-reference"></code>
+      </section>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </main>
+    <footer>
+      <span>Video Trust Lab</span><a href="/researcher">Researcher workspace</a>
+    </footer>
+  </body>
+</html>
