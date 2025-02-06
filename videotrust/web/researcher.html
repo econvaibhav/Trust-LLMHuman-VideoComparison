@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Study results · Video Trust Lab</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/researcher.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"
+        ><span class="brandmark">vt.</span> Video Trust Lab</a
+      >
+      <nav aria-label="Workspace">
+        <a href="/">Participant view</a
+        ><a href="/researcher" aria-current="page">Researcher</a>
+      </nav>
+    </header>
+    <main class="dashboard">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">RESEARCHER WORKSPACE</p>
+          <h1>Study results</h1>
+          <p class="muted">
+            Compare the scores. Open a video to read the responses and evidence.
+          </p>
+        </div>
+        <span id="study-mode" class="pill">Private access</span>
+      </div>
+      <form id="login" class="login">
+        <h2>Open your study</h2>
+        <label for="admin-token">Researcher token</label>
+        <p class="small muted">
+          Use the token printed when you start the server.
+        </p>
+        <div>
+          <input
+            id="admin-token"
+            type="password"
+            autocomplete="off"
+            required
+          /><button class="button primary">Open results</button>
+        </div>
+      </form>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <section id="results" hidden>
+        <p id="demo-note" class="demo-note" hidden>
+          <strong>Demo study.</strong> Video scores and interview inference are
+          synthetic examples. Direct ratings are entered through the demo
+          survey.
+        </p>
+        <div class="comparison-controls">
+          <div>
+            <label for="measure">Participant measure</label
+            ><select id="measure"></select>
+          </div>
+          <div class="condition-control">
+            <label for="group">Video assessment</label
+            ><select id="group"></select>
+          </div>
+          <div class="actions">
+            <button id="refresh" class="button secondary">Refresh</button
+            ><button id="logout" class="text-button">Lock</button>
+          </div>
+        </div>
+        <p id="measure-note" class="small muted"></p>
+        <div class="metrics">
+          <article>
+            <span>Saved responses</span><strong id="responses">0</strong
+            ><small id="response-context">Selected measure</small>
+          </article>
+          <article>
+            <span>Completed sessions</span><strong id="sessions">0</strong
+            ><small id="session-context">Of 0 started</small>
+          </article>
+          <article>
+            <span>Matched videos</span><strong id="paired">0</strong
+            ><small id="pair-context">Of 0 videos</small>
+          </article>
+          <article>
+            <span>Mean absolute gap</span><strong id="gap">—</strong
+            ><small>Points on the 0–10 scale</small>
+          </article>
+        </div>
+        <div class="overview-grid">
+          <section class="panel chart-card">
+            <div class="panel-head">
+              <h2>Score comparison</h2>
+              <p class="small muted">
+                Each point is a video. The diagonal marks equal scores.
+              </p>
+            </div>
+            <div id="chart"></div>
+            <p id="correlation-note" class="small muted chart-foot"></p>
+            <span id="correlation" hidden></span>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Collection &amp; analysis</h2>
+              <p class="small muted">Coverage across the study.</p>
+            </div>
+            <dl id="coverage" class="coverage"></dl>
+            <div class="panel-note">
+              <p id="coverage-note"></p>
+              <p class="small muted">
+                A missing score stays missing. Repeated model runs are counted
+                separately from participant responses.
+              </p>
+            </div>
+            <div class="export-actions">
+              <button id="export" class="button secondary">
+                Export responses</button
+              ><button id="export-comparison" class="button secondary">
+                Export comparison</button
+              ><button id="export-interviews" class="button secondary" hidden>
+                Export interviews
+              </button>
+            </div>
+          </section>
+        </div>
+        <section id="agreement-panel" class="panel agreement" hidden>
+          <h2>Does the interview reflect the participant’s own rating?</h2>
+          <p id="agreement-value"></p>
+          <p class="small muted">
+            Matched by the same session and video. Gap = interview inference −
+            direct rating. Rating first may anchor the later interview.
+          </p>
+        </section>
+        <section class="review-section">
+          <div class="section-heading">
+            <div>
+              <h2>Review the videos</h2>
+              <p class="small muted">
+                Choose a video to inspect both sides of the comparison.
+              </p>
+            </div>
+            <div class="find-video">
+              <label class="sr-only" for="search">Find a video</label
+              ><input id="search" type="search" placeholder="Find a video…" />
+            </div>
+          </div>
+          <div class="review-grid">
+            <div class="panel video-list">
+              <div class="list-options">
+                <label for="sort">Order</label
+                ><select id="sort">
+                  <option value="gap">Largest gap</option>
+                  <option value="title">Video title</option>
+                  <option value="missing">Missing assessments</option></select
+                ><span id="visible-count" class="small muted"></span>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Video</th>
+                      <th id="participant-column">Participant</th>
+                      <th>Model</th>
+                      <th>Gap</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rows"></tbody>
+                </table>
+              </div>
+              <p id="list-empty" class="empty-state" hidden>
+                No videos match your search.
+              </p>
+            </div>
+            <article class="panel inspector" id="inspector">
+              <div class="panel-head">
+                <p class="eyebrow">SELECTED VIDEO</p>
+                <h2 id="detail-title">Select a video</h2>
+                <p id="detail-meta" class="small muted"></p>
+              </div>
+              <video
+                id="detail-video"
+                controls
+                playsinline
+                preload="auto"
+                hidden
+              ></video>
+              <div id="detail-scores" class="detail-scores"></div>
+              <div class="tabs" role="tablist" aria-label="Video details">
+                <button
+                  id="tab-responses"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="panel-responses"
+                  data-panel="responses"
+                >
+                  Responses</button
+                ><button
+                  id="tab-model"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="panel-model"
+                  data-panel="model"
+                >
+                  Model runs</button
+                ><button
+                  id="tab-evidence"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="panel-evidence"
+                  data-panel="evidence"
+                >
+                  Evidence
+                </button>
+              </div>
+              <div id="detail-status" class="small muted" role="status"></div>
+              <section
+                id="panel-responses"
+                role="tabpanel"
+                aria-labelledby="tab-responses"
+                class="detail-panel"
+              ></section>
+              <section
+                id="panel-model"
+                role="tabpanel"
+                aria-labelledby="tab-model"
+                class="detail-panel"
+                hidden
+              ></section>
+              <section
+                id="panel-evidence"
+                role="tabpanel"
+                aria-labelledby="tab-evidence"
+                class="detail-panel"
+                hidden
+              ></section>
+            </article>
+          </div>
+        </section>
+        <p class="method-note">
+          These scores describe perceived trust. They do not establish whether a
+          video is factually correct. Participant ratings, interview inference
+          and video assessments are distinct measures.
+        </p>
+      </section>
+    </main>
+    <footer>
+      <span>Video Trust Lab</span
+      ><span>Study responses stay separate from model assessments.</span>
+    </footer>
+  </body>
+</html>
