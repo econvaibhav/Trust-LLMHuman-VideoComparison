@@ -1,0 +1,42 @@
+import os
+import json
+import cv2
+import base64
+from openai import OpenAI
+
+transcription_json_file = "transcription_results.json"
+output_english_file = "transcription_results_english.json"
+openai_api_key = "REDACTED_USE_ENVIRONMENT_VARIABLE"
+client = OpenAI(api_key=openai_api_key)
+
+with open(transcription_json_file, "r", encoding="utf-8") as f:
+    transcription_results = json.load(f)
+
+valid_videos = [video for video in transcription_results if video["transcription"].strip()]
+
+def is_english_text(text):
+    PROMPT_MESSAGES = [
+        {
+            "role": "user",
+            "content": f"Determine if the following text is in English: \"{text}\". Respond with 'yes' or 'no'."
+        },
+    ]
+    params = {
+        "model": "gpt-4o-mini",
+        "messages": PROMPT_MESSAGES,
+        "max_tokens": 5,
+    }
+    result = client.chat.completions.create(**params)
+    response = result.choices[0].message.content.strip().lower()
+    return response == "yes"
+
+english_transcriptions = []
+for video in valid_videos:
+    transcription = video["transcription"]
+    if is_english_text(transcription):
+        english_transcriptions.append(video)
+
+with open(output_english_file, "w", encoding="utf-8") as f:
+    json.dump(english_transcriptions, f, indent=4, ensure_ascii=False)
+
+print(f"Filtered English transcriptions saved in {output_english_file}")

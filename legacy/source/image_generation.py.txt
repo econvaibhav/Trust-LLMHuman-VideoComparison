@@ -1,0 +1,54 @@
+import os
+import requests
+import json
+from datetime import datetime
+
+api_key = 'REDACTED_USE_ENVIRONMENT_VARIABLE'  
+
+url = 'https://api.openai.com/v1/images/generations'
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {api_key}'
+}
+
+output_folder = r"C:\\Users\\User\\OneDrive - University of Helsinki\\Desktop\\Vaibhav_Studies\\6th Teaching Period\\HCI Project\\marvel_images"
+
+os.makedirs(output_folder, exist_ok=True)
+
+for i in range(1,75 ):
+    prompt = (
+        "A superhero in a dynamic sprinting pose, wearing a bright red suit with glowing yellow lightning bolt accents and a lightning emblem on the chest. The character exudes speed and power, with crackling yellow lightning effects surrounding them. Dramatic lighting emphasizes their intense expression and intricate costume details. The background is motion-blurred with dark tones, enhancing the sense of movement and energy. No text, perfectly balanced composition in 1024x1024 resolution."
+    )
+
+    data = {
+        "prompt": prompt,
+        "n": 1,
+        "size": "1024x1024"
+    }
+
+    try:
+
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        result = response.json()
+
+
+        image_url = result['data'][0]['url']
+
+
+        image_response = requests.get(image_url)
+        image_response.raise_for_status()
+
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = os.path.join(output_folder, f"superhero_{i}_{timestamp}.png")
+        with open(filename, 'wb') as image_file:
+            image_file.write(image_response.content)
+
+        print(f"Image {i} saved successfully: {filename}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred for image {i}: {e}")
+
+print("Image generation completed.")

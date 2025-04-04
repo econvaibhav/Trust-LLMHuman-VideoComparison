@@ -1,0 +1,45 @@
+import os
+import json
+import numpy as np
+from openai import OpenAI
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import normalize
+
+embedding_model = "text-embedding-3-small"
+api_key = "REDACTED_USE_ENVIRONMENT_VARIABLE"
+openai_client = OpenAI(api_key=api_key)
+transcription_file = "combined_english_data.json"
+output_file = "english_data_with_topics.json"
+
+with open(transcription_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+def get_text_embedding(text):
+    response = openai_client.embeddings.create(input=text, model=embedding_model)
+    return response.data[0].embedding  # Use dot notation
+
+text_embeddings = []
+for video in data:
+    combined_text = (video.get("transcription", "") + " " + video.get("summary", "")).strip()
+    if combined_text:
+        embedding = get_text_embedding(combined_text)
+        text_embeddings.append(embedding)
+    else:
+        text_embeddings.append(None)
+
+valid_indices = [i for i, e in enumerate(text_embeddings) if e is not None]
+valid_embeddings = [text_embeddings[i] for i in valid_indices]
+
+normalized_embeddings = normalize(valid_embeddings)
+
+n_clusters = 10  # Number of topics
+topic_model = KMeans(n_clusters=n_clusters, random_state=0)
+topics = topic_model.fit_predict(normalized_embeddings)
+
+for i, index in enumerate(valid_indices):
+    data[index]["topic_models"] = f"Topic {topics[i]}"
+
+with open(output_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=4, ensure_ascii=False)
+
+print(f"Enhanced data with 10 topics saved in {output_file}")

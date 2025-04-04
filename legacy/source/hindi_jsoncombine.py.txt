@@ -1,0 +1,51 @@
+import os
+import json
+
+# File paths
+transcription_english_file = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\transcription_results_hindi.json"
+summary_file = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\video_summaries_hindi.json"
+metadata_file = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\Videos\shorts_batch_1.json"
+output_combined_file = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\combined_english_data_hindi.json"
+
+# Load JSON data
+with open(transcription_english_file, "r", encoding="utf-8") as f:
+    english_transcriptions = json.load(f)
+
+with open(summary_file, "r", encoding="utf-8") as f:
+    video_summaries = json.load(f)
+
+with open(metadata_file, "r", encoding="utf-8") as f:
+    metadata = json.load(f)
+
+# Normalize titles and create mappings
+metadata_map = {}
+for entry in metadata:
+    normalized_title = os.path.splitext(entry["title"].strip().lower())[0]
+    metadata_map[normalized_title] = entry
+
+summary_map = {os.path.splitext(video["file_name"].strip().lower())[0]: video for video in video_summaries}
+
+# Combine data
+combined_data = []
+for video in english_transcriptions:
+    file_name = video["file_name"]
+    normalized_file_name = os.path.splitext(file_name.strip().lower())[0]
+
+    metadata_entry = metadata_map.get(normalized_file_name, {})
+    summary_entry = summary_map.get(normalized_file_name, {})
+
+    combined_entry = {
+        "file_name": file_name,
+        "full_path": video["full_path"],
+        "transcription": video["transcription"],
+        "summary": summary_entry.get("summary", "No summary available"),
+        "metadata": metadata_entry.get("metadata", {}),
+        "comments": metadata_entry.get("comments", [])
+    }
+    combined_data.append(combined_entry)
+
+# Save combined data to a new JSON file
+with open(output_combined_file, "w", encoding="utf-8") as f:
+    json.dump(combined_data, f, indent=4, ensure_ascii=False)
+
+print(f"Combined data saved to: {output_combined_file}")

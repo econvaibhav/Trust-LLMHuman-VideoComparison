@@ -1,0 +1,76 @@
+import os
+import json
+from openai import OpenAI
+
+input_file = "english_data_with_classifications_hindi.json"
+output_text_file = r"C:\Users\User\OneDrive - University of Helsinki\Desktop\Vaibhav_Studies\6th Teaching Period\HCI Project\Main_Trust_Analysis_LLM\trust_analysis_results_modiji.txt"
+openai_api_key = "REDACTED_USE_ENVIRONMENT_VARIABLE"
+client = OpenAI(api_key=openai_api_key)
+
+with open(input_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+data_sample = data
+
+def format_video_data(video_data):
+    title = video_data.get("file_name", "N/A")
+    transcription = video_data.get("transcription", "N/A")
+    summary = video_data.get("summary", "N/A")
+    comments = "\n".join([f"{comment['comment']} (Sentiment: {comment['comment_sentiment']})" for comment in video_data.get("comments", [])])
+    classification = video_data.get("classification", "N/A")
+    topic_models = video_data.get("topic_models", "N/A")
+
+    formatted_data = f"""
+    Title: {title}
+    Transcription: {transcription}
+    Summary: {summary}
+    Comments:
+    {comments}
+    Classification: {classification}
+    Topic Models: {topic_models}
+    """
+    return formatted_data.strip()
+
+def analyze_trust(formatted_data):
+    prompt = f"""
+    Based on the following video details, evaluate its trustworthiness:
+    {formatted_data}
+
+    Provide the following results:
+    trust_score: A score from 0 to 10.
+    why_test_score: A brief explanation (1-2 sentences).
+    factor_choice: List factors influencing the score with one sentence explanation each.
+    full_summary: based on all the details, summarise the video in 2 sentences
+    short_summary: tell what is video is in 10 words or less 
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+            temperature=2
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"API Error: {e}")
+        return "Error during processing."
+
+text_output = []
+
+for video in data_sample:
+    try:
+        formatted_data = format_video_data(video)
+        trust_analysis = analyze_trust(formatted_data)
+
+        text_output.append("#############################\n")
+        text_output.append(f"# Video Path: {video['full_path']}\n")
+        text_output.append(trust_analysis + "\n")
+        text_output.append("#############################\n\n")
+
+    except Exception as e:
+        print(f"Failed to analyze trust for video {video['file_name']}: {e}")
+
+with open(output_text_file, "w", encoding="utf-8") as f:
+    f.writelines(text_output)
+
+print(f"Trust analysis for sample completed. Results saved in {output_text_file}.")

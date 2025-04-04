@@ -1,0 +1,113 @@
+################################################################################
+'''
+Research Question: 
+How do human evaluators and Large Language Models differ in their ability to detect and assess the trustworthiness of information?
+'''
+
+################################################################################
+import requests
+import json
+import os
+from datetime import datetime
+
+api_key = 'REDACTED_USE_ENVIRONMENT_VARIABLE'  # Replace with your actual API key
+
+url = 'https://api.openai.com/v1/chat/completions'
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {api_key}'
+}
+
+messages = [
+    {
+        "role": "system",
+        "content": (
+            "You are an assistant that asks the user questions to understand how much they trust a video they have just watched. "
+            "You should ask questions to gauge their trust in the video, without directly asking them how much they trust it. "
+            "Adjust your questions based on their responses, and try not to take much of the user's time. "
+            "At the beginning of the conversation, let the user know that it will only take a couple of minutes, "
+            "and they can type 'stop' to end the conversation at any time. "
+            "When you feel you've understood their perception of trust or if they're not providing more information, end the conversation by saying 'Thank you for sharing your thoughts!' "
+            "After ending the conversation, provide a summary of the conversation, including: "
+            "- The conversation log with questions and replies "
+            "- A trust score from 0 to 10 "
+            "- A summary of their responses "
+            "- An explanation of why you gave that score and what factors influenced your understanding of their trust level. "
+            "Present this information in a clear and concise manner."
+        )
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "Hello! I'd like to ask you a few quick questions about the video you just watched. "
+            "This will only take a couple of minutes, but if you'd like to stop at any time, just type 'stop'. "
+            "Could you tell me what the video was about?"
+        )
+    }
+]
+
+
+conversation_log = []
+
+
+while True:
+    print("Assistant:", messages[-1]['content'])
+    conversation_log.append({
+        'question': messages[-1]['content']
+    })
+
+    user_input = input("User: ")
+    if user_input.strip().lower() in ['exit', 'quit', 'stop']:
+        print("Assistant: Thank you for your time!")
+        break
+
+    conversation_log[-1]['reply'] = user_input
+
+    messages.append({"role": "user", "content": user_input})
+
+    data = {
+        'model': 'gpt-4o-mini',
+        'messages': messages,
+        'temperature': 0.7,
+        'max_tokens': 500  
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+    if response.status_code == 200:
+        result = response.json()
+        reply = result['choices'][0]['message']['content'].strip()
+
+        
+        messages.append({"role": "assistant", "content": reply})
+
+        
+        if 'Thank you for sharing your thoughts!' in reply:
+            print("Assistant:", reply)
+            break
+    else:
+        print(f"Request failed with status code {response.status_code}")
+        print("Error message:", response.json().get('error', {}).get('message', ''))
+        break
+
+assistant_final_reply = reply
+
+output_file = 'conversation_history.txt'
+
+session_separator = f"\n{'='*40}\nSession started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n{'='*40}\n"
+
+output_data = session_separator
+
+output_data += "\nConversation Log:\n"
+for entry in conversation_log:
+    question = entry.get('question', '')
+    user_reply = entry.get('reply', '')
+    output_data += f"Assistant: {question}\nUser: {user_reply}\n"
+
+output_data += f"\nAssistant's Summary and Analysis:\n{assistant_final_reply}\n"
+
+with open(output_file, 'a', encoding='utf-8') as f:
+    f.write(output_data)
+
+print(f"\nConversation saved to '{output_file}' in the cd.")

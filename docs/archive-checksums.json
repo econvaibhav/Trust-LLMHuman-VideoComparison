@@ -1,0 +1,23 @@
+{
+  "latest_archive": {
+    "filename": "OneDrive_4_25-09-2026(1).zip",
+    "sha256": "b435db202624e9a260fe6f0394b8817a362ab580e74e476fd5420276c4edd872"
+  },
+  "previous_inventory": [
+    {
+      "archive": "OneDrive_2_24-09-2026 (1).zip",
+      "archive_sha256": "65e9ef1e78072e087e08f161469763ba5c7ee2b177745d26437fd80041a82afa",
+      "entries": 59
+    },
+    {
+      "archive": "frontend.zip",
+      "archive_sha256": "7c6b17fdf86fec4d497dc8e53c6ad61633fef8d3dbee86dc2b33638c4218ed51",
+      "entries": 1359
+    },
+    {
+      "archive": "backend.zip",
+      "archive_sha256": "e1e4fa6e72e9cbb399e15edb705cb8250efdc557c3bb8728de9424d4897de4ce",
+      "entries": 0
+    }
+  ]
+}

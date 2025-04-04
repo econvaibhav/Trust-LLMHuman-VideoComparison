@@ -1,0 +1,77 @@
+import os
+import json
+import cv2
+import base64
+from openai import OpenAI
+
+input_file = "video_summaries_hindi.json"
+output_file = "english_data_with_classifications_hindi.json"
+openai_api_key = "REDACTED_USE_ENVIRONMENT_VARIABLE"
+client = OpenAI(api_key=openai_api_key)
+
+with open(input_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+data_sample = data
+
+def classify_video(video_path):
+    video = cv2.VideoCapture(video_path)
+    base64Frames = []
+    frame_rate = video.get(cv2.CAP_PROP_FPS)
+    frame_interval = int(frame_rate * 3)
+    frame_count = 0
+
+    while video.isOpened():
+        success, frame = video.read()
+        if not success:
+            break
+        if frame_count % frame_interval == 0:
+            _, buffer = cv2.imencode(".jpg", frame)
+            base64Frames.append(base64.b64encode(buffer).decode("utf-8"))
+        frame_count += 1
+
+    video.release()
+
+    if base64Frames:
+        PROMPT_MESSAGES = [
+            {
+                "role": "user",
+                "content": [
+                    "We are analyzing frames from a video to classify it into one of the following predefined categories related to political content: "
+                    "1. Selfie view: The subject is directly addressing the camera in a personal and informal manner, "
+                    "2. Interview: A structured conversation between two or more participants, often in a formal setting, "
+                    "3. Rally speech: A speaker addressing a crowd at a political rally, often with a podium or large audience visible, "
+                    "4. All text video: The video features only text visuals with no person shown, "
+                    "5. Information snippets: The video contains a mix of unrelated or fast-paced content pieces, "
+                    "6. Meme/meme related: The video includes humorous or meme-like elements, often designed to entertain. "
+                    "7. Food/Cooking: A video where a recipe is shown, a person is cooking or food is mentioned many times"
+                    "Based on the provided images from the video, classify it into one of these categories. No additional explanation or description is needed, only the category name as the classification result.",
+                    *map(lambda x: {"image": x, "resize": 768}, base64Frames),
+                ],
+            }
+        ]
+
+        params = {
+            "model": "gpt-4o",
+            "messages": PROMPT_MESSAGES,
+            "max_tokens": 50,
+        }
+
+        result = client.chat.completions.create(**params)
+        return result.choices[0].message.content.strip()
+
+    return "Unknown"
+
+for video in data_sample:
+    video_path = video["full_path"]
+    try:
+        classification = classify_video(video_path)
+        video["classification"] = classification
+    except Exception as e:
+        print(f"Failed to process {video_path}: {e}")
+        video["classification"] = "Error"
+
+with open(output_file, "w", encoding="utf-8") as f:
+    json.dump(data_sample, f, indent=4, ensure_ascii=False)
+
+print(f"Classifications saved in {output_file}")

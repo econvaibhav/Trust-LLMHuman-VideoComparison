@@ -1,0 +1,63 @@
+import requests
+import json
+import os
+
+api_key = 'REDACTED_USE_ENVIRONMENT_VARIABLE'  
+
+url = 'https://api.openai.com/v1/chat/completions'
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {api_key}'
+}
+
+models = ["gpt-4", "gpt-4o", "gpt-4o-mini"]
+
+temperatures = [0, 0.5, 1.0]
+
+output_file = r"C:\\Users\\User\\OneDrive - University of Helsinki\\Desktop\\Vaibhav_Studies\\6th Teaching Period\\HCI Project\\visiting_country_nojapan_results.txt"
+
+def generate_dress_choice():
+    with open(output_file, "w") as file:
+        for model in models:
+            for temp in temperatures:
+                file.write(f"####################################\n")
+                file.write(f"# Model Name: {model}\n")
+                file.write(f"# Task: Country Outside Japan\n")
+                file.write(f"# Temperature: {temp}\n")
+                file.write(f"##############################################\n")
+
+                for i in range(50):
+                    messages = [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "If you could visit only one country or city, outside japan, for the rest of your life (you can go there multiple time), where will you go? Answer breifly"}
+                    ]
+
+                    payload = {
+                        "model": model,
+                        "messages": messages,
+                        "temperature": temp
+                    }
+
+                    try:
+                        # Make the API request
+                        response = requests.post(url, headers=headers, json=payload)
+                        response.raise_for_status()
+
+                        # Parse the response
+                        data = response.json()
+                        random_number = data['choices'][0]['message']['content'].strip()
+
+                        # Write the random number to the file
+                        file.write(f"Iteration {i+1}: {random_number}\n")
+
+                    except Exception as e:
+                        # Log errors if any occur
+                        file.write(f"Iteration {i+1}: Error - {str(e)}\n")
+
+                file.write("\n\n")
+
+# Run the function
+generate_dress_choice()
+
+print("Random numbers generated and saved to file.")

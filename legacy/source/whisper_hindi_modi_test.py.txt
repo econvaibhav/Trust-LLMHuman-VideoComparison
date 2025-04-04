@@ -1,0 +1,41 @@
+import os
+import json
+from whisper import load_model
+import re
+
+# Ensure only Devanagari characters
+def force_hindi_script(text):
+    return re.sub(r"[^\u0900-\u097F\s]", "", text)
+
+input_directory = r"C:\\Users\\User\\OneDrive - University of Helsinki\\Desktop\\Vaibhav_Studies\\6th Teaching Period\\HCI Project\\Videos"
+output_json_file = "transcription_results_hindi.json"
+model = load_model("base")
+
+transcription_results = []
+video_extensions = {".mp4", ".avi", ".mov", ".mkv", ".flv"}
+
+for root, _, files in os.walk(input_directory):
+    for file in files:
+        file_path = os.path.join(root, file)
+        file_extension = os.path.splitext(file)[-1].lower()
+
+        if file_extension in video_extensions:
+            print(f"Processing file: {file_path}")
+            try:
+                result = model.transcribe(file_path, task="transcribe", language="hi")
+                transcription = result.get("text", "")
+                cleaned_transcription = force_hindi_script(transcription)
+
+                transcription_results.append({
+                    "file_name": file,
+                    "full_path": file_path,
+                    "transcription": cleaned_transcription
+                })
+
+            except Exception as e:
+                print(f"Failed to process {file_path}: {e}")
+
+with open(output_json_file, "w", encoding="utf-8") as f:
+    json.dump(transcription_results, f, indent=4, ensure_ascii=False)
+
+print(f"Transcription completed. Results saved in {output_json_file}")

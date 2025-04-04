@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random YouTube Video</title>
+    <script>
+        function loadRandomVideo() {
+            fetch('/random_video_raw')
+                .then(response => response.json())
+                .then(data => {
+                    const videoContainer = document.getElementById('video-container');
+                    videoContainer.innerHTML = `
+                        <h1>${data.title}</h1>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/${data.video_id}?autoplay=1" frameborder="0" allowfullscreen></iframe>
+                    `;
+                })
+                .catch(error => console.error('Error fetching random video:', error));
+        }
+        window.onload = loadRandomVideo;
+    </script>
+</head>
+<body>
+    <div id="video-container"></div>
+    <button onclick="loadRandomVideo()">Load Another Video</button>
+</body>
+</html>

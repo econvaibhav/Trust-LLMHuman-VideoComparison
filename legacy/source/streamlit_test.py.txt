@@ -1,0 +1,117 @@
+import streamlit as st
+
+# Page configuration
+st.set_page_config(
+    page_title="TikTok Professional Layout",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# Custom CSS for a polished design
+st.markdown(
+    """
+    <style>
+        /* Main container layout */
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: calc(100vh - 50px); /* Full height minus header */
+        }
+        /* Video Section (Left) */
+        .video-section {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+            border-radius: 10px;
+        }
+        .video {
+            width: 100%;
+            max-width: 540px;
+            height: 960px;
+            border-radius: 10px;
+            background-color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        /* Right Side (Comments + Chatbot) */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-left: 20px;
+        }
+        .comments {
+            flex: 2;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .comments-content {
+            overflow-y: auto;
+            max-height: calc(100% - 30px); /* Maintain padding */
+        }
+        .chatbot {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Main header
+st.markdown('<h1 style="text-align: center; margin-bottom: 20px;">TikTok Professional Layout</h1>', unsafe_allow_html=True)
+
+# Main layout
+st.markdown('<div class="container">', unsafe_allow_html=True)
+
+# Left side: Video section
+st.markdown('<div class="video-section">', unsafe_allow_html=True)
+st.markdown('<div class="video">Video Placeholder (TikTok Style)</div>', unsafe_allow_html=True)
+# Uncomment below to add an actual video
+# st.video("path_to_video.mp4", format="video/mp4")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Right side: Comments and Chatbot
+st.markdown('<div class="right-panel">', unsafe_allow_html=True)
+
+# Comments Section
+st.markdown('<div class="comments">', unsafe_allow_html=True)
+st.markdown('<h4>Comments</h4>', unsafe_allow_html=True)
+st.markdown('<div class="comments-content">', unsafe_allow_html=True)
+comments = [
+    "Amazing content!",
+    "This is so inspiring!",
+    "Where can I learn this?",
+    "Love this video!",
+    "Keep posting more!",
+    "Wow, such creativity!",
+]
+for comment in comments:
+    st.markdown(f"- {comment}")
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Chatbot Section
+st.markdown('<div class="chatbot">', unsafe_allow_html=True)
+st.markdown('<h4>Chatbot</h4>', unsafe_allow_html=True)
+user_input = st.text_input("Type your question:")
+if user_input:
+    st.markdown(f"Chatbot Response: You said '{user_input}'")
+st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)  # Close right panel
+st.markdown('</div>', unsafe_allow_html=True)  # Close container
