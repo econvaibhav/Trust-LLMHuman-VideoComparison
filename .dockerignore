@@ -1,0 +1,4 @@
+*
+!videotrust/
+!videotrust/**
+**/__pycache__/
