@@ -1,0 +1,157 @@
+{
+  "video_id": "part_46",
+  "title": "part_46",
+  "media_sha256": "fccdadb58c6825725f5c5990cb3232d280bab33d3d632584141973167a9114e2",
+  "whisper_model": "tiny",
+  "frame_count": 6,
+  "requested_language": null,
+  "duration_seconds": 50.9,
+  "transcript": " Vimeä, kun on kansalaisia suututtanut juomapulloihin ja puulla on paloitusjärjestelmä on vaikuttavat uudistukset. Pitäisiä suomella laalla mahdollisuus kieltäytyä toteuttamasta tällaisia yksittäisiä uudistuksia. Pitäisiä olla vihreä. Kukaan on sitä näitä teipitäisi olla. Sopia virtaa pitsi. Kaisaa osa luomimavaraa. No lahti kautta sitä, että uudistusta ito se avarmasta etty suomen tarpeisiin, koska meillä on osalta alkiärattää, mutta kaikki alkan näitä sulle. Tässä on hyvä esimerkki siitä, että kun puutaan EU-usta puhutaan oikeasti ukrainen tuesta EU-kilpaalukyvistaa ilmastukriisin torbisesta. Toivoisin vähästä täyttä, näissä kysymyksiä keskittäisi on ki munkun niin puulonkarkkeihin. Mutta ne ovat hampi teinsi kerti onko on vaikia joida vissakin. Kerti, kun on laissa maamelti. EU-saa aika paljon isomistkyysyksittäkkyysä. Ja teipitäisiä näperäillä tällaista. Ja kyllä näin teintä, että on aika isompi kysymyskömi käntä.",
+  "language": "fi",
+  "transcription_status": "ok",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.18,
+      "text": " Vimeä, kun on kansalaisia suututtanut juomapulloihin ja"
+    },
+    {
+      "start": 3.18,
+      "end": 6.4,
+      "text": " puulla on paloitusjärjestelmä on vaikuttavat uudistukset."
+    },
+    {
+      "start": 6.4,
+      "end": 10.200000000000001,
+      "text": " Pitäisiä suomella laalla mahdollisuus kieltäytyä toteuttamasta"
+    },
+    {
+      "start": 10.200000000000001,
+      "end": 12.280000000000001,
+      "text": " tällaisia yksittäisiä uudistuksia."
+    },
+    {
+      "start": 12.280000000000001,
+      "end": 14.280000000000001,
+      "text": " Pitäisiä olla vihreä."
+    },
+    {
+      "start": 14.280000000000001,
+      "end": 16.64,
+      "text": " Kukaan on sitä näitä teipitäisi olla."
+    },
+    {
+      "start": 16.64,
+      "end": 18.28,
+      "text": " Sopia virtaa pitsi."
+    },
+    {
+      "start": 18.28,
+      "end": 19.64,
+      "text": " Kaisaa osa luomimavaraa."
+    },
+    {
+      "start": 19.64,
+      "end": 22.92,
+      "text": " No lahti kautta sitä, että uudistusta ito se"
+    },
+    {
+      "start": 22.92,
+      "end": 25.240000000000002,
+      "text": " avarmasta etty suomen tarpeisiin, koska meillä on osalta"
+    },
+    {
+      "start": 25.240000000000002,
+      "end": 27.28,
+      "text": " alkiärattää, mutta kaikki alkan näitä sulle."
+    },
+    {
+      "start": 27.28,
+      "end": 29.520000000000003,
+      "text": " Tässä on hyvä esimerkki siitä, että kun puutaan"
+    },
+    {
+      "start": 29.520000000000003,
+      "end": 31.520000000000003,
+      "text": " EU-usta puhutaan oikeasti ukrainen tuesta"
+    },
+    {
+      "start": 31.520000000000003,
+      "end": 34.52,
+      "text": " EU-kilpaalukyvistaa ilmastukriisin torbisesta."
+    },
+    {
+      "start": 34.52,
+      "end": 36.84,
+      "text": " Toivoisin vähästä täyttä, näissä kysymyksiä keskittäisi on"
+    },
+    {
+      "start": 36.84,
+      "end": 38.36,
+      "text": " ki munkun niin puulonkarkkeihin."
+    },
+    {
+      "start": 38.36,
+      "end": 40.480000000000004,
+      "text": " Mutta ne ovat hampi teinsi kerti onko on vaikia joida"
+    },
+    {
+      "start": 40.480000000000004,
+      "end": 41.52,
+      "text": " vissakin."
+    },
+    {
+      "start": 41.52,
+      "end": 42.8,
+      "text": " Kerti, kun on laissa maamelti."
+    },
+    {
+      "start": 42.8,
+      "end": 45.52,
+      "text": " EU-saa aika paljon isomistkyysyksittäkkyysä."
+    },
+    {
+      "start": 45.52,
+      "end": 47.52,
+      "text": " Ja teipitäisiä näperäillä tällaista."
+    },
+    {
+      "start": 47.52,
+      "end": 50.52,
+      "text": " Ja kyllä näin teintä, että on aika isompi kysymyskömi käntä."
+    }
+  ],
+  "frames": [
+    {
+      "path": "frames/part_46/frame_00.jpg",
+      "timestamp_seconds": 4.242,
+      "sha256": "a57f4cb7f9738171852e6344e356ef80d357f7fccbf5dd71e81c2c5dcded218a"
+    },
+    {
+      "path": "frames/part_46/frame_01.jpg",
+      "timestamp_seconds": 12.725,
+      "sha256": "997e266f4c6e37fe3dc30122ddf40eab5d22b67f4a2ecab56c4d3dd05abb4483"
+    },
+    {
+      "path": "frames/part_46/frame_02.jpg",
+      "timestamp_seconds": 21.208,
+      "sha256": "25c8ce6fe79331a4b2ff5fefd0b4f8abeb4bcd6f680747975fd50bd8f7c4de9c"
+    },
+    {
+      "path": "frames/part_46/frame_03.jpg",
+      "timestamp_seconds": 29.692,
+      "sha256": "36f5b2894c4ede298e0b349639661e1503f7c6b6ebdf56725f16b0d3064e8ff2"
+    },
+    {
+      "path": "frames/part_46/frame_04.jpg",
+      "timestamp_seconds": 38.175,
+      "sha256": "a9ff028f4775b12cad877e5794fd38b3a6900342fa7b338df8d4f4fbc8cbb656"
+    },
+    {
+      "path": "frames/part_46/frame_05.jpg",
+      "timestamp_seconds": 46.658,
+      "sha256": "eea4209187ad0246a9d04d118d4b731cbc540d823aadc19cb86ceb4c77517c6f"
+    }
+  ],
+  "provenance": "Prepared locally from the bundled part_46 video with Whisper tiny and OpenCV; uncorrected automatic transcription. Not a recovered API request."
+}
