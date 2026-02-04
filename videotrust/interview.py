@@ -137,8 +137,8 @@ class Interview:
                     raise StudyError("Answer at least one question before finishing")
                 messages = state["messages"]
                 if self.demo:
-                    result = {"trust_score": 5, "rationale": "Fixed synthetic score to demonstrate the workflow; not inferred from these answers.",
-                              "participant_summary": "A demonstration interview was completed.", "factors": ["Synthetic fixture"]}
+                    result = {"trust_score": None, "rationale": "The offline demo saves answers but does not infer a trust score. Run a live study for model interpretation.",
+                              "participant_summary": "A demonstration interview was completed.", "factors": []}
                     meta = {"resolved_model": "scripted-demo"}
                 else:
                     try:
