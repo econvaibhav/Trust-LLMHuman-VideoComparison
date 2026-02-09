@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def study_config(count, is_demo=False):
-    return {"title": "Video Trust Lab", "is_demo": is_demo, "consent_version": "demo-v1" if is_demo else "draft-v1",
+    return {"title": "Video trust study", "is_demo": is_demo, "consent_version": "demo-v2" if is_demo else "draft-v1",
             "videos_per_session": min(count, 3), "contact": "Set the researcher contact in study.json.",
-            "consent_text": ("This is a local demonstration using three fictional, silent video clips. Your scores, optional explanation, playback duration, and response time are saved on this computer. No name or email is requested. You may stop at any time. Model ratings are synthetic examples and are not shown during the survey." if is_demo else
+            "consent_text": ("This local demonstration uses part_46, a Finnish news video. Your rating, optional explanation and playback time are saved on this computer. No name or email is requested. No API calls are made. The researcher view includes a recorded example model score. You may stop at any time." if is_demo else
                              "DRAFT — replace this text with your study information, researcher contact, retention period, withdrawal procedure and consent wording before recruitment.")}
 
 
@@ -22,12 +22,12 @@ def init_demo(workspace, interview=False, paired=False):
     shutil.copytree(Path(__file__).parent / "demo", workspace, dirs_exist_ok=True)
     if interview or paired:
         cfg = read_json(workspace / "study.json")
-        cfg.update(response_mode="paired" if paired else "interview", interview_turns=3, consent_version="demo-interview-v1")
-        cfg["consent_text"] = "This local demonstration uses fictional videos and scripted interview questions. Your answers are stored on this computer. Participant and video trust scores are fixed synthetic examples, not research findings. No API calls are made. You may stop at any time."
+        cfg.update(response_mode="paired" if paired else "interview", interview_turns=3, consent_version="demo-interview-v2")
+        cfg["consent_text"] = "This local demonstration uses part_46, a Finnish news video, and fixed interview questions. Your responses are saved on this computer. No API calls are made and no score is inferred from your answers. The researcher view includes a recorded example model score. You may stop at any time."
         write_json(workspace / "study.json", cfg)
 
 
-def register(workspace, media_dir, skip_invalid=False):
+def register(workspace, media_dir, skip_invalid=False, response_mode="direct"):
     if (workspace / "catalog.json").exists():
         raise ValueError("Choose a new workspace")
     from .media import inspect_media
@@ -56,8 +56,19 @@ def register(workspace, media_dir, skip_invalid=False):
     if not rows:
         raise ValueError("No video files were found")
     write_json(workspace / "catalog.json", rows)
-    write_json(workspace / "study.json", study_config(len(rows)))
+    write_json(workspace / "study.json", {**study_config(len(rows)), "response_mode": response_mode})
     return len(rows)
+
+
+def init_example(workspace, response_mode="paired"):
+    """Create a separate live pilot from the bundled clip, without example scores."""
+    clip = Path(__file__).parent / "demo" / "media" / "part_46.mp4"
+    register(workspace, clip, response_mode=response_mode)
+    cfg = read_json(workspace / "study.json")
+    cfg.update(title="Video trust study", contact="vaibhav.agarwal@tum.de",
+               consent_version="local-pilot-v1", interview_turns=3,
+               consent_text="This is a local pilot using part_46. Your responses are saved on this computer. Live interviews send your written answers to OpenAI to ask follow-up questions and interpret your responses. Video analysis sends a transcript and sampled images to OpenAI. Do not enter names or other personal information. You may stop at any time. Replace this pilot information with your institution's approved study information before inviting participants.")
+    write_json(workspace / "study.json", cfg)
 
 
 def restore_media(workspace, media_dir):
@@ -90,9 +101,9 @@ def restore_media(workspace, media_dir):
 def main(argv=None):
     p = argparse.ArgumentParser(description="Collect videos, survey people, and compare independent model judgments.")
     sub = p.add_subparsers(dest="command", required=True)
-    for name in ("demo", "serve", "register", "collect", "prepare", "enrich", "analyze", "recover-legacy", "restore-media", "report", "doctor"):
+    for name in ("demo", "example", "serve", "register", "collect", "prepare", "enrich", "analyze", "recover-legacy", "restore-media", "report", "doctor"):
         cmd = sub.add_parser(name)
-        cmd.add_argument("--workspace", type=Path, default=Path("data/demo" if name == "demo" else "data/study"))
+        cmd.add_argument("--workspace", type=Path, default=Path("data/demo-part46" if name == "demo" else "data/study"))
         if name in ("demo", "serve"):
             cmd.add_argument("--host", default="127.0.0.1")
             cmd.add_argument("--port", type=int, default=8000)
@@ -102,6 +113,8 @@ def main(argv=None):
             mode.add_argument("--paired", action="store_true")
         if name == "register":
             cmd.add_argument("--skip-invalid", action="store_true")
+        if name in ("register", "example"):
+            cmd.add_argument("--response-mode", choices=["direct", "interview", "paired"], default="paired" if name == "example" else "direct")
         if name == "enrich":
             cmd.add_argument("--model", default="gpt-4o-mini")
             cmd.add_argument("--embedding-model", default="text-embedding-3-small")
@@ -126,10 +139,10 @@ def main(argv=None):
             cmd.add_argument("--runs", type=int, default=1)
             cmd.add_argument("--evidence-mode", choices=["video_only", "metadata_comments", "legacy_enriched"], default="video_only")
     args = p.parse_args(argv)
-    if args.command == "demo" and args.interview and args.workspace == Path("data/demo"):
-        args.workspace = Path("data/demo-interview")
-    if args.command == "demo" and args.paired and args.workspace == Path("data/demo"):
-        args.workspace = Path("data/demo-paired")
+    if args.command == "demo" and args.interview and args.workspace == Path("data/demo-part46"):
+        args.workspace = Path("data/demo-part46-interview")
+    if args.command == "demo" and args.paired and args.workspace == Path("data/demo-part46"):
+        args.workspace = Path("data/demo-part46-paired")
     args.workspace = args.workspace.resolve()
     try:
         if args.command in ("demo", "serve"):
@@ -151,8 +164,11 @@ def main(argv=None):
                 pass
             finally:
                 server.server_close()
+        elif args.command == "example":
+            init_example(args.workspace, args.response_mode)
+            print(f"Created a live part_46 pilot in {args.workspace}. Next: trust-video prepare, trust-video analyze, trust-video serve. Use the same --workspace for each command if you chose a custom folder.")
         elif args.command == "register":
-            print(f"Registered {register(args.workspace, args.input, args.skip_invalid)} valid unique videos. See registration_report.json; edit study.json before recruitment.")
+            print(f"Registered {register(args.workspace, args.input, args.skip_invalid, args.response_mode)} valid unique videos. See registration_report.json; edit study.json before recruitment.")
         elif args.command == "restore-media":
             missing = restore_media(args.workspace, args.input)
             print(f"Media restore complete. Missing or ambiguous: {len(missing)}. See media_restore_report.json.")
