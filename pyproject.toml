@@ -3,24 +3,26 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "video-trust-lab"
-version = "2.1.0"
+name = "trust-llmhuman-videocomparison"
+version = "2.2.0"
 description = "Collect independent human and model judgments of short videos."
 requires-python = ">=3.11"
-authors = [{name = "Vaibhav Agarwal"}]
+authors = [{name = "Vaibhav Agarwal", email = "vaibhav.agarwal@tum.de"}]
+readme = "README.md"
+license = {file = "LICENSE"}
 dependencies = []
 
 [project.optional-dependencies]
 analysis = ["opencv-python-headless>=4.10,<5", "openai-whisper>=20240930"]
 collection = ["yt-dlp>=2025.1.15", "vaderSentiment>=3.3.2,<4"]
 enrichment = ["scikit-learn>=1.5,<2", "vaderSentiment>=3.3.2,<4"]
-assets = ["Pillow>=10,<13"]
 
 [project.scripts]
+trust-video = "videotrust.__main__:main"
 videotrust = "videotrust.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["videotrust*"]
 
 [tool.setuptools.package-data]
-videotrust = ["web/*", "demo/*.json", "demo/*.jsonl", "demo/media/*.mp4"]
+videotrust = ["web/*", "demo/*.json", "demo/*.jsonl", "demo/media/*.mp4", "demo/evidence/*.json", "demo/frames/*/*.jpg"]
