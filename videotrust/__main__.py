@@ -137,7 +137,7 @@ def main(argv=None):
             cmd.add_argument("--model", default="gpt-4o-mini")
             cmd.add_argument("--temperatures", type=float, nargs="+", default=[0])
             cmd.add_argument("--runs", type=int, default=1)
-            cmd.add_argument("--evidence-mode", choices=["video_only", "metadata_comments", "legacy_enriched"], default="video_only")
+            cmd.add_argument("--evidence-mode", choices=["video_only", "source_context", "metadata_comments", "legacy_enriched"], default="video_only")
     args = p.parse_args(argv)
     if args.command == "demo" and args.interview and args.workspace == Path("data/demo-part46"):
         args.workspace = Path("data/demo-part46-interview")
