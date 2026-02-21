@@ -101,15 +101,6 @@ b {
   gap: 12px;
   font-weight: 600;
 }
-.brandmark {
-  display: grid;
-  place-items: center;
-  background: #111;
-  color: white;
-  width: 34px;
-  height: 34px;
-  font-size: 21px;
-}
 .topbar nav {
   display: flex;
   gap: 26px;
@@ -860,15 +851,6 @@ progress::-moz-progress-bar {
   max-width: 650px;
   margin: 45px auto;
   text-align: center;
-}
-.done-symbol {
-  display: inline-grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border: 1px solid #111;
-  margin: 0 auto 22px;
-  font-size: 25px;
 }
 .done code {
   display: block;
