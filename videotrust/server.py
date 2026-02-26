@@ -54,7 +54,7 @@ def create_server(workspace, host="127.0.0.1", port=8000, admin_token="", interv
         except ValueError as exc:
             raise StudyError(str(exc), 400) from None
         result["available_measures"] = measures
-        result["study"] = {"title": config.get("title", "Video Trust Lab"), "response_mode": mode,
+        result["study"] = {"title": config.get("title", "Video trust study"), "response_mode": mode,
                            "consent_version": config["consent_version"], "videos_per_session": n}
         result["summary"].update(store.progress_summary())
         result["interview_agreement"] = interview_agreement(participant_rows) if mode == "paired" else None
@@ -69,7 +69,7 @@ def create_server(workspace, host="127.0.0.1", port=8000, admin_token="", interv
         return result
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "VideoTrustLab"
+        server_version = "VideoTrust"
 
         def setup(self):
             super().setup()
@@ -238,7 +238,7 @@ def create_server(workspace, host="127.0.0.1", port=8000, admin_token="", interv
                 if path.startswith("/media/"):
                     return self.media(path.removeprefix("/media/"))
                 files = {"/": "index.html", "/researcher": "researcher.html", "/app.js": "app.js",
-                         "/researcher.js": "researcher.js", "/styles.css": "styles.css", "/favicon.svg": "favicon.svg"}
+                         "/researcher.js": "researcher.js", "/styles.css": "styles.css"}
                 if path in files:
                     f = WEB / files[path]
                     return self.send(200, f.read_bytes(), (mimetypes.guess_type(f.name)[0] or "text/plain") + "; charset=utf-8")

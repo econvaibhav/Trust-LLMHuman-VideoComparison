@@ -146,7 +146,7 @@ function renderRows() {
   if ($("sort").value === "missing")
     rows.sort((a, b) => Number(b.gap === null) - Number(a.gap === null));
   $("rows").replaceChildren();
-  $("visible-count").textContent = `${rows.length} videos`;
+  $("visible-count").textContent = `${rows.length} video${rows.length === 1 ? "" : "s"}`;
   $("list-empty").hidden = !!rows.length;
   for (const r of rows) {
     const tr = el("tr");
@@ -165,9 +165,11 @@ function renderRows() {
           ? "Both scores available"
           : r.human_n
             ? "Waiting for model"
-            : r.model_n
-              ? "Waiting for participants"
-              : "No scores yet",
+            : r.response_count
+              ? "Response saved; no numeric score"
+              : r.model_n
+                ? "Waiting for participants"
+                : "No scores yet",
         "row-status",
       ),
     );
@@ -221,13 +223,17 @@ async function load() {
       option(
         $("group"),
         g.id,
-        `${g.model} · T=${g.temperature} · ${g.evidence_mode}${g.evidence_set_hash ? " · " + g.evidence_set_hash.slice(0, 6) : ""}`,
+        g.evidence_mode === "recorded_example"
+          ? `Recorded pilot · ${g.resolved_model || g.model}`
+          : `${g.model} · T=${g.temperature} · ${g.evidence_mode}${g.evidence_set_hash ? " · " + g.evidence_set_hash.slice(0, 6) : ""}`,
       );
     if (!data.groups.length) option($("group"), "", "No completed assessments");
     $("group").value = selected;
     $("measure-note").textContent =
       measure === "interview_inferred"
-        ? "This score is inferred by an LLM from the conversation. It is not the participant’s own numeric rating."
+        ? data.is_demo
+          ? "No score is inferred in the offline demo. Your interview answers are saved for review."
+          : "This score is inferred by an LLM from the conversation. It is not the participant’s own numeric rating."
         : "This score was selected by the participant before any interview. The video model never receives it.";
     $("participant-column").textContent =
       measure === "interview_inferred" ? "Inferred" : "Participant";
@@ -257,7 +263,7 @@ async function load() {
     if (agreement)
       $("agreement-value").textContent = agreement.pairs
         ? `${agreement.pairs} paired responses · mean absolute gap ${fmt(agreement.mean_absolute_gap)} · mean signed gap ${fmt(agreement.mean_signed_gap)} points`
-        : "Complete both steps for a video to compare the two participant measures.";
+        : "No paired numeric scores yet. Offline interviews and inconclusive live interviews remain unscored.";
     $("coverage-note").textContent = s.paired_videos
       ? `${s.paired_videos} video${s.paired_videos === 1 ? "" : "s"} can be compared for this condition.`
       : "Responses and model assessments must refer to the same video before a gap is calculated.";
@@ -343,9 +349,10 @@ function renderModels(row) {
   for (const run of row.model_runs) {
     const box = el("article", undefined, "response-item");
     box.append(
-      el("strong", `Run ${run.repeat} · ${fmt(run.trust_score)} / 10`),
+      el("strong", `${run.evidence_mode === "recorded_example" ? "Recorded example" : "Run " + run.repeat} · ${fmt(run.trust_score)} / 10`),
       el("p", run.rationale || "No explanation recorded."),
     );
+    if (run.provenance) box.append(el("p", run.provenance, "small muted"));
     if (run.full_summary) box.append(el("p", run.full_summary, "muted"));
     if (run.factors)
       box.append(el("p", "Factors: " + run.factors.join("; "), "small"));
@@ -385,6 +392,7 @@ async function renderEvidence(detail, seq) {
       "small muted",
     ),
     el("p", ev.transcript || "No speech transcript.", "transcript"),
+    el("p", "Automatic transcription may contain errors. Review it against the audio before interpreting model judgments.", "small muted"),
   );
   if (detail.context) {
     target.append(
