@@ -29,6 +29,9 @@ class StudyTests(unittest.TestCase):
         init_demo(self.path)
         self.catalog=read_json(self.path/'catalog.json')
         self.config=read_json(self.path/'study.json')
+        # Three identities exercise allocation using the one bundled media fixture.
+        self.catalog = [{**self.catalog[0], 'video_id': f'allocation_{i}'} for i in range(3)]
+        self.config['videos_per_session'] = 3
         self.store=Store(self.path,self.catalog,self.config)
 
     def tearDown(self): self.tmp.cleanup()
@@ -107,7 +110,7 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(self.request('/api/sessions',[])[0],400)
 
     def test_media_ranges(self):
-        path='/media/demo_community'
+        path='/media/part_46'
         code,headers,body=self.request(path,headers={'Range':'bytes=0-99'})
         self.assertEqual(code,206);self.assertEqual(len(body),100);self.assertEqual(headers['Accept-Ranges'],'bytes')
         self.assertEqual(self.request(path,headers={'Range':'bytes=-50'})[0],206)
@@ -196,6 +199,17 @@ class AnalysisTests(unittest.TestCase):
             self.assertNotIn('hello',json.dumps(calls))
             self.assertEqual(analyze(w,api_key='dummy',evidence_mode='metadata_comments',request=response),(1,0))
             self.assertIn('hello',json.dumps(calls[-1]));self.assertNotIn('PRIVATE',json.dumps(calls[-1]))
+            with self.assertRaises(ValueError):
+                analyze(w,api_key='dummy',evidence_mode='source_context',request=response)
+            catalog=read_json(w/'catalog.json')
+            catalog[0]['metadata']={'source_context':{'publisher':'Named publisher','basis':'Researcher-supplied source record'}, 'likes':999}
+            write_json(w/'catalog.json',catalog)
+            self.assertEqual(analyze(w,api_key='dummy',evidence_mode='source_context',request=response),(1,0))
+            content=json.loads(calls[-1]['messages'][1]['content'][0]['text'])
+            self.assertEqual(content['researcher_supplied_source_context']['publisher'],'Named publisher')
+            self.assertNotIn('comments',content);self.assertNotIn('metadata',content)
+            self.assertNotIn('hello',json.dumps(content));self.assertNotIn('999',json.dumps(content))
+            self.assertEqual(analyze(w,api_key='dummy',evidence_mode='source_context',request=response),(0,0))
 
     def test_failed_model_outputs_do_not_become_scores(self):
         with tempfile.TemporaryDirectory() as td:
@@ -216,9 +230,9 @@ class OptionalMediaTests(unittest.TestCase):
         except ImportError:self.skipTest('OpenCV is an optional analysis dependency')
         from videotrust.media import extract_frames
         with tempfile.TemporaryDirectory() as td:
-            clip=Path(__file__).parents[1]/'videotrust/demo/media/demo_community.mp4'
+            clip=Path(__file__).parents[1]/'videotrust/demo/media/part_46.mp4'
             duration,frames=extract_frames(clip,td,count=3)
-            self.assertAlmostEqual(duration,8,places=1)
+            self.assertAlmostEqual(duration,50.9,places=1)
             self.assertEqual(len(frames),3)
             self.assertTrue(all(Path(f['path']).stat().st_size>1000 for f in frames))
 

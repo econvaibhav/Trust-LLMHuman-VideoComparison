@@ -43,13 +43,14 @@ class InterviewTests(unittest.TestCase):
         for turn in (1, 2):
             after = service.answer(s['token'], self.payload(s, turn))
         self.assertEqual(after['completed'], 1)
-        self.assertNotEqual(after['video']['video_id'], s['video']['video_id'])
+        self.assertTrue(after['done'])
+        self.assertIsNone(self.store.participant_rows()[0]['trust_score'])
         self.assertEqual(len(self.store.participant_rows()), 1)
         self.assertEqual(self.store.participant_rows()[0]['measure'], 'interview_inferred')
         self.assertEqual(len(self.store.interview_export()), 3)
         self.assertEqual(service.answer(s['token'], self.payload(s, 2)), after)
         with self.assertRaises(StudyError):
-            self.store.rate(s['token'], {'video_id': after['video']['video_id'], 'trust_score': 5})
+            self.store.rate(s['token'], {'video_id': s['video']['video_id'], 'trust_score': 5})
 
     def test_early_finish_and_session_isolation(self):
         service = self.service()

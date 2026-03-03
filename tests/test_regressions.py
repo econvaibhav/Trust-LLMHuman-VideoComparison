@@ -52,10 +52,10 @@ class PairedTests(unittest.TestCase):
         direct = comparison(self.cat, rows, [], measure='direct_rating')
         inferred = comparison(self.cat, rows, [], measure='interview_inferred')
         self.assertEqual(next(r for r in direct['rows'] if r['video_id']==vid)['human_mean'], 0)
-        self.assertEqual(next(r for r in inferred['rows'] if r['video_id']==vid)['human_mean'], 5)
-        self.assertEqual(interview_agreement(rows)['mean_absolute_gap'], 5)
-        self.assertEqual(self.store.current(s['token'])['stage'], 'rating')
-        self.assertEqual(self.store.progress_summary()['active_sessions'], 1)
+        self.assertIsNone(next(r for r in inferred['rows'] if r['video_id']==vid)['human_mean'])
+        self.assertIsNone(interview_agreement(rows)['mean_absolute_gap'])
+        self.assertTrue(self.store.current(s['token'])['done'])
+        self.assertEqual(self.store.progress_summary()['active_sessions'], 0)
 
     def test_report_exports_each_measure(self):
         self.complete_one()
@@ -131,7 +131,7 @@ class MediaTests(unittest.TestCase):
     def test_reject_corrupt_file_and_allow_valid_subset(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);inputs=root/'inputs';inputs.mkdir()
-            clip=Path(__file__).parents[1]/'videotrust/demo/media/demo_community.mp4'
+            clip=Path(__file__).parents[1]/'videotrust/demo/media/part_46.mp4'
             shutil.copy2(clip,inputs/'good.mp4');(inputs/'bad.mp4').write_bytes(b'not a video')
             with self.assertRaises(ValueError):register(root/'strict',inputs)
             self.assertFalse((root/'strict/catalog.json').exists())
@@ -145,7 +145,6 @@ class MediaTests(unittest.TestCase):
         except ImportError:self.skipTest('OpenCV optional')
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)/'study';init_demo(root,paired=True)
-            prepare(root,frames=2)
             server=create_server(root,port=0,admin_token='long-admin-test-token')
             thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
             base=f'http://127.0.0.1:{server.server_port}';vid=read_json(root/'catalog.json')[0]['video_id']
@@ -158,7 +157,7 @@ class MediaTests(unittest.TestCase):
                 for path in ('/api/admin/video?id='+vid,'/api/admin/frame?id='+vid+'&index=0','/api/admin/comparison.csv'):
                     self.assertEqual(get(path,False)[0],401)
                 status,body=get('/api/admin/video?id='+vid);self.assertEqual(status,200)
-                detail=json.loads(body);self.assertEqual(len(detail['evidence']['frames']),2)
+                detail=json.loads(body);self.assertEqual(len(detail['evidence']['frames']),6)
                 frame=detail['evidence']['frames'][0];self.assertNotIn('path',frame)
                 self.assertEqual(get(frame['url'])[0],200)
                 self.assertEqual(get('/api/admin/frame?id='+vid+'&index=-1')[0],404)
