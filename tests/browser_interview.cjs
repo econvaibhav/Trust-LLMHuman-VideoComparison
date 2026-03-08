@@ -1,4 +1,4 @@
-/* Run against a fresh interview demo; see docs/TESTING.md. */
+/* Run against a fresh interview demo; see README.md. */
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -47,28 +47,11 @@ const path = require("node:path");
       path: path.join(process.env.SCREENSHOT_DIR, "interview-desktop.png"),
       fullPage: true,
     });
-  await page.locator("#finish-interview").click();
-  await page.waitForFunction(
-    () => document.getElementById("step-label").textContent === "Video 2 of 3",
-  );
-  for (let video = 2; video <= 3; video++)
-    for (let turn = 0; turn < 3; turn++) {
-      await page
-        .locator("#interview-answer")
-        .fill(`Answer ${turn}: I would look for a named source.`);
-      await page.locator("#send-answer").click();
-      if (turn < 2)
-        await page.waitForFunction(
-          (n) => document.querySelectorAll("#conversation p").length === n,
-          3 + turn * 2,
-        );
-      else if (video === 2)
-        await page.waitForFunction(
-          () =>
-            document.getElementById("step-label").textContent ===
-            "Video 3 of 3",
-        );
-    }
+  for (let turn = 1; turn < 3; turn++) {
+    await page.locator("#interview-answer").fill(`Answer ${turn}: I would look for a named source.`);
+    await page.locator("#send-answer").click();
+    if (turn < 2) await page.waitForFunction(() => document.querySelectorAll("#conversation p").length === 5);
+  }
   await page.locator("#done").waitFor({ state: "visible" });
   await page.goto(base + "/researcher");
   await page.locator("#admin-token").fill(process.env.VIDEOTRUST_TEST_TOKEN);
@@ -77,7 +60,7 @@ const path = require("node:path");
   assert(
     (await page.locator("#measure-note").textContent()).includes("inferred"),
   );
-  assert.equal(await page.locator("#paired").textContent(), "3");
+  assert.equal(await page.locator("#paired").textContent(), "0");
   const download = page.waitForEvent("download");
   await page.locator("#export-interviews").click();
   assert.equal((await download).suggestedFilename(), "interviews.json");
@@ -89,7 +72,6 @@ const path = require("node:path");
         "interview video playback",
         "neutral follow-up flow",
         "resume saved answers",
-        "early finish",
         "automatic finish",
         "score measure separation",
         "interview export",

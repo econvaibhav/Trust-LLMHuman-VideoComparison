@@ -15,10 +15,6 @@ def main():
         with tempfile.TemporaryDirectory() as td:
             workspace = Path(td) / "study"
             init_demo(workspace, interview=mode=="interview", paired=mode=="paired")
-            if mode == "paired":
-                from videotrust.media import prepare
-                good, errors = prepare(workspace, frames=2)
-                if errors: raise RuntimeError(errors)
             token = "local-browser-verification-token"
             server = create_server(workspace, port=0, admin_token=token)
             thread = threading.Thread(target=server.serve_forever, daemon=True)

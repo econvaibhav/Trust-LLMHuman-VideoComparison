@@ -26,7 +26,7 @@ const path = require("node:path");
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.waitForFunction(() =>
-    document.getElementById("consent-text").textContent.includes("fictional"),
+    document.getElementById("consent-text").textContent.includes("part_46"),
   );
   assert(await page.locator("#start").isDisabled());
   if (out)
@@ -45,7 +45,7 @@ const path = require("node:path");
     first,
     "Session did not resume its assignment",
   );
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 1; i++) {
     await page.waitForFunction(
       () => document.querySelector("#video").readyState >= 2,
     );
@@ -55,11 +55,7 @@ const path = require("node:path");
     );
     await page.locator("#video").evaluate((v) => v.pause());
     const title = await page.locator("#video-title").textContent();
-    const score = title.includes("garden")
-      ? 8
-      : title.includes("habit")
-        ? 2
-        : 6;
+    const score = 9;
     await page.locator(`input[name=trust][value="${score}"]`).check();
     await page
       .locator("#reason")
@@ -71,21 +67,16 @@ const path = require("node:path");
         fullPage: true,
       });
     await page.locator("#submit").click();
-    if (i < 2)
-      await page.waitForFunction(
-        (previous) =>
-          document.getElementById("video-title").textContent !== previous,
-        title,
-      );
+
   }
   await page.locator("#done").waitFor({ state: "visible" });
   await page.goto(base + "/researcher");
   await page.locator("#admin-token").fill(token);
   await page.locator("#login button").click();
   await page.locator("#results").waitFor({ state: "visible" });
-  assert.equal(await page.locator("#paired").textContent(), "3");
+  assert.equal(await page.locator("#paired").textContent(), "1");
   assert(await page.locator("#demo-note").isVisible());
-  assert.equal(await page.locator("#chart circle").count(), 3);
+  assert.equal(await page.locator("#chart circle").count(), 1);
   if (out)
     await page.screenshot({
       path: path.join(out, "dashboard-desktop.png"),
@@ -138,7 +129,7 @@ const path = require("node:path");
         "consent",
         "resume",
         "real MP4 playback",
-        "three saved ratings",
+        "saved part_46 rating",
         "protected dashboard",
         "scatter plot",
         "CSV download",

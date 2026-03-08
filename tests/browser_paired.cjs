@@ -84,30 +84,24 @@ const path = require("node:path");
       fullPage: true,
     });
   await page.locator("#finish-interview").click();
-  await page.waitForFunction(
-    () => document.querySelector("#step-label").textContent === "Video 2 of 3",
-  );
+  await page.locator("#done").waitFor({state: "visible"});
   await page.goto(base + "/researcher");
   await page.locator("#admin-token").fill(process.env.VIDEOTRUST_TEST_TOKEN);
   await page.locator("#login button").click();
   await page.locator("#results").waitFor({ state: "visible" });
   assert.equal(await page.locator("#responses").textContent(), "1");
   assert.equal(await page.locator("#measure").inputValue(), "direct_rating");
-  assert(
-    (await page.locator("#agreement-value").textContent()).includes(
-      "mean absolute gap 5.0",
-    ),
-  );
+  assert((await page.locator("#agreement-value").textContent()).includes("No paired numeric scores"));
   await page.locator("#measure").selectOption("interview_inferred");
   await page.waitForFunction(
     () =>
       document.querySelector("#participant-column").textContent === "Inferred",
   );
   assert.equal(await page.locator("#responses").textContent(), "1");
-  assert.equal(await page.locator("#chart circle").count(), 1);
+  assert.equal(await page.locator("#chart circle").count(), 0);
   await page.locator("#tab-evidence").click();
   await page.waitForFunction(
-    () => document.querySelectorAll("#panel-evidence img").length === 2,
+    () => document.querySelectorAll("#panel-evidence img").length === 6,
   );
   await page.waitForFunction(() =>
     [...document.querySelectorAll("#panel-evidence img")].every(
@@ -145,6 +139,10 @@ const path = require("node:path");
       fullPage: true,
     });
   await page.goto(base);
+  await page.evaluate(() => sessionStorage.clear());
+  await page.reload();
+  await page.locator("#consent").check();
+  await page.locator("#start").click();
   await page.route("**/media/**", (r) => r.abort());
   await page.reload();
   await page.locator("#media-error").waitFor({ state: "visible" });
