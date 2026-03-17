@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "Please cite this software if you use or adapt it in research."
+type: software
+title: "Trust-LLMHuman-VideoComparison"
+version: 2.2.0
+authors:
+  - family-names: Agarwal
+    given-names: Vaibhav
+    email: vaibhav.agarwal@tum.de
+license: MIT
+abstract: "A local research toolkit for studying how people and language models judge the trustworthiness of videos, with separate ratings, interviews, evidence and model assessments."
