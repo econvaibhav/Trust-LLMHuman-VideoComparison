@@ -193,6 +193,164 @@ A useful pilot check is: video plays; rating survives reload; interview answers 
 
 For another pilot, add the **same new `--workspace data/pilot2`** to every command above. Existing response data is never overwritten.
 
+## Design a study
+
+The three measures answer different questions:
+
+| Measure | Input | Meaning |
+| --- | --- | --- |
+| Direct participant rating | A person's own 0–10 selection | How much that person reports trusting the video. |
+| Interview inference | That person's written answers | An LLM's interpretation of expressed trust; inconclusive answers can remain unscored. |
+| Independent video assessment | Title, transcript, sampled frames and the chosen context | The model's judgment from the supplied evidence. |
+
+Use the direct rating for the main human–model comparison. Interviews help investigate the reasons behind it. Paired mode also lets you examine whether interview inference agrees with a person's own score. Rating first may influence what people say next; the order is part of the study design.
+
+![Black-and-white study workflow](assets/workflow.png)
+
+[Editable LaTeX/TikZ](workflow.tex) · [PDF for papers and presentations](assets/workflow.pdf)
+
+### Investigating the source-recognition hypothesis
+
+The new `source_context` condition adds a researcher-supplied source description to the same video evidence. It excludes comments and unrelated engagement metadata. This supports a focused model-side comparison with `video_only`.
+
+For a useful experiment, hold the transcript, sampled frames, title, prompt version, model and temperature fixed while varying the source information. Record how the source was identified; a visible badge is not independent verification. Separately evaluate transcription quality so that source information and speech-recognition errors are not changed together.
+
+People already see branding and hear continuous audio in this clip. Adding source context to the model does not equalize their exposures. A human-side causal study would also need a planned manipulation, random assignment, adequate participants/videos and appropriate review. These are study-design decisions rather than automatic features of the application.
+
+<details>
+<summary>Set up the source-context comparison</summary>
+
+Create a new pilot with `trust-video example --workspace data/source-study`. Before starting its server, open `data/source-study/catalog.json` in a text editor. Replace that video's empty `"metadata": {}` with:
+
+```json
+"metadata": {
+  "source_context": {
+    "publisher": "Iltalehti",
+    "basis": "The researcher identified the visible account handle and news branding in the clip. Publisher identity and this upload have not been independently verified."
+  }
+}
+```
+
+Use a documented source URL and verification method if you have them; do not describe an unverified attribution as verified. Do not insert participant ratings or interview answers here.
+
+```bash
+trust-video prepare --workspace data/source-study --language fi
+trust-video analyze --workspace data/source-study --evidence-mode video_only
+trust-video analyze --workspace data/source-study --evidence-mode source_context
+trust-video serve --workspace data/source-study
+```
+
+Use the dashboard's **Video assessment** selector to inspect the separate conditions. To investigate variability, add `--runs 3` to each analysis command. Re-running completed jobs skips them; increasing the run count adds only missing repetitions.
+
+</details>
+
+### Bring your own videos
+
+```bash
+trust-video register --input "path/to/your/videos" --workspace data/my-study --response-mode paired
+```
+
+Use H.264 MP4 with AAC/MP3 audio, or VP8/VP9 WebM with Opus/Vorbis audio. Registration checks metadata and decodes the first frame; pilot full playback before recruitment. A single video path also works. Invalid files are reported; `--skip-invalid` explicitly allows a valid subset.
+
+Before the first `serve`, edit `data/my-study/study.json`: study title, contact, consent wording/version, retention and withdrawal information, number of videos per session, response mode and interview length. Then use `prepare`, `analyze` and `serve` with `--workspace data/my-study` on each command.
+
+The catalog and study settings are frozen when the response database is first created, including by `serve` or `report`. Use a new workspace for design changes. Default workspaces and databases are excluded from Git.
+
+## Technical details
+
+<details>
+<summary>Architecture, evidence and exports</summary>
+
+Python serves a plain HTML/CSS/JavaScript interface and stores responses in SQLite. There is no frontend build step. Optional processing uses Whisper and OpenCV; API requests use Python's standard library.
+
+| File or directory | What it contains |
+| --- | --- |
+| `catalog.json`, `study.json` | Video identities, media hashes and study settings. |
+| `responses.sqlite3` | Sessions, direct ratings, interview turns and inferred assessments. |
+| `evidence/`, `frames/` | Automatic transcript, timing and sampled images. |
+| `analyses.jsonl` | Successful live assessments, raw validated output and model/prompt/evidence provenance. |
+| `*_report.json`, `analysis_errors.jsonl` | Preparation, registration or provider failures. |
+| `comparison.csv`, `comparison.json` | Exports produced by `trust-video report`. |
+
+Live runs retain requested/resolved model, temperature, repeat index, prompt/evidence hashes and available response metadata. Model conditions stay separate. A score of zero is valid; failed or missing results do not become zero. Temperature zero is not a guarantee of identical results.
+
+`video_only` supplies title, transcript and sparse frames. `source_context` adds only the source description. `metadata_comments` additionally supplies catalog metadata and up to ten comments. `legacy_enriched` uses text representations: transcript, generated visual summary, presentation format, topic cluster and comment sentiment, without images at the final assessment step.
+
+Frames are sampled at evenly spaced midpoints, resized to at most 768 pixels on their longest side, and sent with low image detail. Small badges or text may become hard to recognize. People hear audio and see continuous video; the model does not. Neither pipeline independently fact-checks claims.
+
+Video-level gap = participant mean − model mean. The dashboard shows counts and sample standard deviations, and keeps model repetitions separate from participant counts. Correlation appears only with at least three matched videos and variation on both axes; it is descriptive, not a significance test or measure of truth. The paired interview panel instead reports inferred score − direct rating for the same session/video. Sessions are not verified unique people.
+
+```bash
+trust-video doctor --workspace data/study
+trust-video report --workspace data/study
+```
+
+The dashboard's exports also include participant CSV and interview JSON. Spreadsheet-leading formulas are escaped in CSV; the database retains the original text. Stop the server before copying the complete workspace for a simple backup. For a running server, use SQLite's backup API.
+
+</details>
+
+<details>
+<summary>Optional collection, enrichment and earlier code</summary>
+
+Local videos are sufficient for the main workflow. YouTube collection is optional:
+
+```bash
+python -m pip install ".[collection,enrichment]"
+trust-video collect --workspace data/collected --query "your study query" --regions FI --limit 10 --download
+```
+
+Collection needs `YOUTUBE_API_KEY`, and downloads depend on source availability and access. Enrichment can add visual summaries, presentation labels, comment sentiment and topic clusters:
+
+```bash
+trust-video enrich --workspace data/study --clusters 1
+trust-video analyze --workspace data/study --evidence-mode legacy_enriched
+```
+
+Prepare evidence first. `--clusters 1` suits the one-video example; a meaningful corpus needs an appropriate cluster count and substantive validation. VADER sentiment is based on an English lexicon and does not validate a video's claims or reliably interpret every language.
+
+Earlier scripts remain in `legacy/source/` as historical code, with credentials redacted. They are not required to run the package. The `recover-legacy` and `restore-media` commands support old local files; imported historical records remain separate from new assessments.
+
+</details>
+
+<details>
+<summary>Tests and common problems</summary>
+
+From the project root:
+
+```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
+
+The tests cover response persistence, valid zero scores, study freezing, protected researcher routes, model-condition separation, duplicate prevention, failed-provider recovery, concurrent sessions and media handling. Optional media/enrichment checks run when their dependencies are installed. Provider tests use controlled responses and do not make paid calls.
+
+Browser checks cover actual `part_46` playback, direct/interview/paired flows, exports, draft recovery and mobile layout:
+
+```bash
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+python tests/run_browser.py
+```
+
+These tools are for contributors; participants and researchers do not need Node.js.
+
+| Problem | What to do |
+| --- | --- |
+| Command is not found | Activate the environment, or use its full executable path as in the Windows instructions. |
+| Port 8000 is busy | Add `--port 8001` and open the printed address. |
+| Researcher token is rejected | Use the token from the currently running terminal. |
+| Study settings changed | Start a new workspace; an existing response database intentionally rejects changed study settings. |
+| No model comparison | Check the selected participant measure and `analysis_errors.jsonl`; offline interviews intentionally have no inferred score. |
+| Whisper/OpenCV/FFmpeg is missing | Install the analysis extras and FFmpeg in the environment used to run the commands. |
+| API request fails | Check model access, API billing and credentials; a saved interview answer can be retried without resubmitting it. |
+| Transcript is inaccurate | Review against the audio; evaluate a larger or language-appropriate transcription model before interpreting differences. |
+
+</details>
+
+### Before recruiting participants
+
+The included server is intended for local pilots. Publishing the code on GitHub does not host the study. Internet recruitment needs suitable hosting, HTTPS, access/rate controls, backups and an institutional data/consent review. Live interviews send participant text to OpenAI; video assessment sends transcript and sampled frames. The researcher token protects results, not access to the public-facing study or its media.
+
 ## Contact and credit
 
 **Vaibhav Agarwal · [vaibhav.agarwal@tum.de](mailto:vaibhav.agarwal@tum.de)**
