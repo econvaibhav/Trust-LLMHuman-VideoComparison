@@ -1,14 +1,20 @@
 # Trust-LLMHuman-VideoComparison
 
-**What makes a video feel trustworthy—and do people and language models rely on the same cues?**
+**What makes a video feel trustworthy?** 
 
-This research toolkit lets people watch a video, give a trust rating, and explain their judgment in a short interview. Separately, a language model assesses a transcript and sampled video frames. A researcher dashboard brings the scores, explanations and evidence together.
+**Do people and language models rely on the same cues?**
 
-The aim is to investigate **how trust is formed**: the role of a familiar publisher, a verification badge, a formal setting, the substance of a claim, or information missing from the model's input. A disagreement is a starting point for investigation, not a verdict about who is right.
+Here is a project I worked on during the Human Computer Interaction Course by Giulio Jacucci in Winter 2024 at the University of Helsinki. 
 
-Originally developed for a Human–Computer Interaction course at the **University of Helsinki**, the project has since been extended by **Vaibhav Agarwal** so that other researchers can adapt it to their own studies.
+This is a complete frontend-backend survey software which lets people watch a video, give a trust rating, and explain their judgment in a short interview hosted by a chatbot. Separately, a language model assesses a transcript and sampled video frames. A researcher dashboard brings the scores, explanations and evidence together to understand the differences in trust and, if **people and language models rely on the same cues which accessing trust!**
 
-[Try it locally](#try-it-locally) · [Run a live pilot](#run-a-live-pilot) · [Design a study](#design-a-study) · [Technical details](#technical-details) · [Contact and credit](#contact-and-credit)
+The aim was to investigate **how trust is formed**: the role of a familiar publisher, a verification badge, a formal setting, the substance of a claim, or information missing from the model's input etc. 
+
+I would be happy to allow other researchers to adapt it to their own studies; however, if this project is useful for your research, please get in touch. I would be interested in discussing the research question, a possible collaboration, or customization. At present, I do not have funding or time to develop features on request; help with adaptation depends on availability and interest! 
+
+The software is released under the **[MIT license](LICENSE)**. Please also credit the project when you use or adapt it in research; [CITATION.cff](CITATION.cff) provides citation metadata. Forking and reuse are permitted under the license. Contact and collaboration is encouraged. 
+
+[Try it locally](#try-it-locally) · [Run a live pilot](#run-a-live-pilot) · [Design a study](#design-a-study) · [Technical details](#technical-details)
 
 ![Researcher dashboard from the part_46 pilot: participant 9, model 4, gap 5](assets/study-results.png)
 
@@ -351,12 +357,3 @@ These tools are for contributors; participants and researchers do not need Node.
 
 The included server is intended for local pilots. Publishing the code on GitHub does not host the study. Internet recruitment needs suitable hosting, HTTPS, access/rate controls, backups and an institutional data/consent review. Live interviews send participant text to OpenAI; video assessment sends transcript and sampled frames. The researcher token protects results, not access to the public-facing study or its media.
 
-## Contact and credit
-
-**Vaibhav Agarwal · [vaibhav.agarwal@tum.de](mailto:vaibhav.agarwal@tum.de)**
-
-If this project is useful for your research, please get in touch. I would be interested in discussing the research question, a possible collaboration, or customization. I do not have dedicated funding or time to develop features on request; help with adaptation depends on availability.
-
-The software is released under the **[MIT license](LICENSE)**. Copies and substantial portions must retain the copyright and license text. Please also credit the project when you use or adapt it in research; [CITATION.cff](CITATION.cff) provides citation metadata. Forking and reuse are permitted under the license. Contact and collaboration are encouraged, not additional license conditions.
-
-The bundled news clip and third-party footage, logos and platform elements visible in screenshots are outside the software license. The clip visibly carries Iltalehti branding; inclusion does not transfer rights to the underlying content or imply endorsement. Check the permissions needed for your own reuse or study distribution.
