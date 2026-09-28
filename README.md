@@ -145,3 +145,7 @@ trust-video register --input "path/to/your/videos" --workspace data/my-study --r
 Use H.264 MP4 with AAC/MP3 audio, or VP8/VP9 WebM with Opus/Vorbis audio. Registration checks metadata and decodes the first frame; pilot full playback before recruitment. A single video path also works. Invalid files are reported; `--skip-invalid` explicitly allows a valid subset.
 
 Before the first `serve`, edit `data/my-study/study.json`: study title, contact, consent wording/version, retention and withdrawal information, number of videos per session, response mode and interview length. Then use `prepare`, `analyze` and `serve` with `--workspace data/my-study` on each command.
+
+## Here is an illustration for the method I tried during HCI class
+
+![HCI Board](assets/HCI_Pres.png)
